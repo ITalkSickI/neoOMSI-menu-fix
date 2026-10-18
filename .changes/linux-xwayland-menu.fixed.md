@@ -1,0 +1,1 @@
+Add an optional X11/Xwayland starter for Linux installations with a dark or empty built-in start menu. It starts the adjacent game binary and preserves command-line arguments and an existing content-folder override.

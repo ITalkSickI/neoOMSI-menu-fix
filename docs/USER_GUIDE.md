@@ -20,6 +20,29 @@ This guide covers running neoOMSI, essential keybindings, and common configurati
 > sudo chown root:root launcher/chrome-sandbox && sudo chmod 4755 launcher/chrome-sandbox
 > ```
 
+### Linux: dark or empty built-in start menu
+
+If the built-in start menu stays dark or empty in a Wayland session, try the
+optional [X11/Xwayland menu starter](../tools/linux/neoomsi-menu-x11.sh). Download
+the script and place it beside the `neoomsi` binary in your extracted build:
+
+```sh
+chmod +x "/path/to/neoOMSI/neoomsi-menu-x11.sh"
+"/path/to/neoOMSI/neoomsi-menu-x11.sh" --root "/path/to/OMSI 2"
+```
+
+When `DISPLAY` is set, the starter removes the Wayland display selectors from
+the game's process environment so its window opens through X11/Xwayland.
+Xwayland must be available in that session. Without `DISPLAY`, the existing
+Wayland environment is kept. This is an optional workaround; the normal game
+entry point is unchanged.
+
+The starter always runs the binary beside it and forwards your command-line
+arguments. It uses that build's folder for mods unless you already set
+`OMSI_CONTENT`. To use it from a desktop shortcut, set the shortcut's `Exec` to
+the script's full path, including quotes if the path contains spaces. This also
+avoids starting an older build through a stale shortcut or `PATH` entry.
+
 ## Keybindings
 
 ### Driving controls
