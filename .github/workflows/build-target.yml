@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
       SOURCE_TOKEN:
-        description: Token with read access to the source repository (only needed if it is private).
+        description: GitLab token with read_repository access to the source repository (only needed if it is private).
         required: false
     inputs:
       platform:
@@ -33,7 +33,7 @@ on:
         required: true
         type: string
       source_repository:
-        description: Repository containing the source commit to build.
+        description: GitLab project path (group/project) containing the source commit to build.
         required: true
         type: string
       source_ref:
@@ -63,6 +63,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
+  SOURCE_HOST: gitlab.com
   neoomsi_VERSION: ${{ inputs.version }}
   neoomsi_BUILD_CHANNEL: ${{ inputs.channel }}
   neoomsi_TARGET: ${{ inputs.target }}
@@ -72,12 +73,18 @@ jobs:
   build:
     runs-on: ${{ inputs.runner }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          repository: ${{ inputs.source_repository }}
-          ref: ${{ inputs.source_ref }}
-          token: ${{ secrets.SOURCE_TOKEN || github.token }}
-          persist-credentials: false
+      - name: Checkout source (GitLab)
+        shell: bash
+        env:
+          SOURCE_TOKEN: ${{ secrets.SOURCE_TOKEN }}
+          SOURCE_REPO: ${{ inputs.source_repository }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          auth=""
+          if [ -n "$SOURCE_TOKEN" ]; then auth="oauth2:${SOURCE_TOKEN}@"; fi
+          git clone "https://${auth}${SOURCE_HOST}/${SOURCE_REPO}.git" .
+          git remote set-url origin "https://${SOURCE_HOST}/${SOURCE_REPO}.git"
+          git checkout "$SOURCE_REF"
 
       - name: Rust toolchain
         if: inputs.target == ''

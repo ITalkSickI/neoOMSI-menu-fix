@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       source_repo:
-        description: "Source repository"
+        description: "GitLab project path (group/project)"
         default: "neoOMSI/game"
       source_ref:
         description: "Reference of source (branch, tag, commit)"
@@ -20,6 +20,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
+  SOURCE_HOST: gitlab.com
   SOURCE_REPO: ${{ inputs.source_repo || 'neoOMSI/game' }}
   SOURCE_REF: ${{ inputs.source_ref || 'main' }}
 
@@ -32,12 +33,16 @@ jobs:
       source_sha: ${{ steps.v.outputs.source_sha }}
       source_repo: ${{ steps.v.outputs.source_repo }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          repository: ${{ env.SOURCE_REPO }}
-          ref: ${{ env.SOURCE_REF }}
-          token: ${{ secrets.SOURCE_TOKEN || github.token }}
-          fetch-depth: 0
+      - name: Checkout source (GitLab)
+        shell: bash
+        env:
+          SOURCE_TOKEN: ${{ secrets.SOURCE_TOKEN }}
+        run: |
+          auth=""
+          if [ -n "$SOURCE_TOKEN" ]; then auth="oauth2:${SOURCE_TOKEN}@"; fi
+          git clone "https://${auth}${SOURCE_HOST}/${SOURCE_REPO}.git" .
+          git remote set-url origin "https://${SOURCE_HOST}/${SOURCE_REPO}.git"
+          git checkout "$SOURCE_REF"
       - id: v
         shell: bash
         run: |
@@ -156,12 +161,17 @@ jobs:
       GH_REPO: ${{ github.repository }}
       SOURCE_SHA: ${{ needs.version.outputs.source_sha }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          repository: ${{ env.SOURCE_REPO }}
-          ref: ${{ needs.version.outputs.source_sha }}
-          token: ${{ secrets.SOURCE_TOKEN || github.token }}
-          fetch-depth: 0
+      - name: Checkout source (GitLab)
+        shell: bash
+        env:
+          SOURCE_TOKEN: ${{ secrets.SOURCE_TOKEN }}
+          SOURCE_REF: ${{ needs.version.outputs.source_sha }}
+        run: |
+          auth=""
+          if [ -n "$SOURCE_TOKEN" ]; then auth="oauth2:${SOURCE_TOKEN}@"; fi
+          git clone "https://${auth}${SOURCE_HOST}/${SOURCE_REPO}.git" .
+          git remote set-url origin "https://${SOURCE_HOST}/${SOURCE_REPO}.git"
+          git checkout "$SOURCE_REF"
       - uses: actions/download-artifact@v8
         with:
           path: out
