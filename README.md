@@ -47,6 +47,9 @@ Detailed documentation and policies live in dedicated guides:
 | [Issue triage](docs/ISSUE_TRIAGE.md)        | How issues are classified, verified, and triaged      |
 | [Releasing & versioning](docs/RELEASING.md) | Release cadence, nightly builds, and versioning       |
 
+The game source repository is private, so the development and building guides
+apply to contributors with access to that repository.
+
 ## Quickstart
 
 For local development and testing, run the fast development builds:
